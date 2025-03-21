@@ -26,6 +26,10 @@ const Index = () => {
                   onClick={() => {
                     localStorage.removeItem('isLoggedIn');
                     window.location.reload();
+                    sessionStorage.removeItem('isLoggedIn'); 
+                    localStorage.removeItem('userEmail');
+                    localStorage.clear();
+                    // Clear session
                   }}
                 >
                   Logout
@@ -93,7 +97,7 @@ const Index = () => {
 
       <footer className="bg-gray-50 border-t py-8">
         <div className="container mx-auto px-4 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Budget Buddy. All rights reserved By MR Fives.</p>
+          <p>&copy; {new Date().getFullYear()} Budget Buddy. All rights reserved By Budget Buddy.</p>
         </div>
       </footer>
     </div>

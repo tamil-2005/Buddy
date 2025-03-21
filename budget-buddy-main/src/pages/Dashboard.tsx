@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, {useState } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import { format } from 'date-fns';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BudgetSummary from '@/components/budget/BudgetSummary';
@@ -24,6 +25,10 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
+interface LocationState {
+  name?: string; // 'name' is optional in case state is undefined
+}
+
 const Dashboard = () => {
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
@@ -31,9 +36,14 @@ const Dashboard = () => {
   const monthString = format(selectedMonth, 'yyyy-MM');
   const formattedMonth = format(selectedMonth, 'MMMM yyyy');
 
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const name = (location.state as LocationState)?.name ?? "Mr Error";
+
   return (
     <DashboardLayout
-      title="Financial Dashboard"
+      title={`Hello ${name}`}
       subtitle="Track your income, expenses, and budget in one place"
     >
       <div className="flex justify-between items-center mb-6">

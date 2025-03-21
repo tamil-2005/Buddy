@@ -1,34 +1,18 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { 
-  ArrowDownCircle, 
-  ArrowUpCircle, 
-  Search, 
-  Trash2, 
-  Edit
-} from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { ArrowDownCircle, ArrowUpCircle, Search, Trash2, Edit } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBudget } from '@/context/BudgetContext';
 import { Transaction } from '@/types/budget';
 import { cn } from '@/lib/utils';
+
+const email = localStorage.getItem('userEmail');
+
+
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -45,43 +29,48 @@ interface TransactionListProps {
   onEdit?: (transaction: Transaction) => void;
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ 
-  limit, 
-  filterMonth,
-  showActions = true,
-  onEdit
-}) => {
-  const { transactions, deleteTransaction } = useBudget();
+const TransactionList: React.FC<TransactionListProps> = ({ limit, filterMonth, showActions = true, onEdit }) => {
+  const { deleteTransaction } = useBudget();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch transactions
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetch(`http://localhost:8070/budject/email/${email}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        setTransactions(data);
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
+    };
+  
+    const intervalId = setInterval(fetchTransactions); // Call API every 100ms
+  
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, []);
+  
+
+
+  
+
 
   // Filter transactions
   let filteredTransactions = [...transactions];
-  
-  // Apply month filter if provided
+
   if (filterMonth) {
-    filteredTransactions = filteredTransactions.filter(
-      transaction => transaction.date.startsWith(filterMonth)
-    );
+    filteredTransactions = filteredTransactions.filter(transaction => transaction.date.startsWith(filterMonth));
   }
-  
-  // Apply search filter
+
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(
-      transaction => 
-        transaction.description.toLowerCase().includes(query) ||
-        transaction.category.toLowerCase().includes(query)
+    filteredTransactions = filteredTransactions.filter(transaction =>
+      transaction.description.toLowerCase().includes(query) || transaction.category.toLowerCase().includes(query)
     );
-  }
-  
-  // Sort by date (newest first)
-  filteredTransactions.sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  // Apply limit if provided
-  if (limit && filteredTransactions.length > limit) {
-    filteredTransactions = filteredTransactions.slice(0, limit);
   }
 
   return (
@@ -121,16 +110,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     <TableCell className="capitalize">{transaction.category}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end">
-                        {transaction.type === 'income' ? (
+                        {transaction.type == 'income' ? (
                           <ArrowUpCircle className="mr-2 h-4 w-4 text-green-500" />
                         ) : (
                           <ArrowDownCircle className="mr-2 h-4 w-4 text-red-500" />
                         )}
-                        <span
-                          className={cn(
-                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                          )}
-                        >
+                        <span className={cn(transaction.type === 'income' ? 'text-green-600' : 'text-red-600')}>
                           {formatCurrency(transaction.amount)}
                         </span>
                       </div>
@@ -165,10 +150,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                 <span>Edit</span>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem 
-                              className="text-red-600" 
-                              onClick={() => deleteTransaction(transaction.id)}
-                            >
+                            <DropdownMenuItem className="text-red-600" onClick={() => deleteTransaction(transaction.id)}>
                               <Trash2 className="mr-2 h-4 w-4" />
                               <span>Delete</span>
                             </DropdownMenuItem>

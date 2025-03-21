@@ -25,7 +25,11 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+
 const Login = () => {
+
+
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -56,7 +60,6 @@ const Login = () => {
       }
 
       const userData = await response.json();
-      console.log(userData);
 
      
 
@@ -64,12 +67,20 @@ const Login = () => {
     // Ensure password fields are valid strings
     const userPass: string = userData.pass;
 
-    const dataPass: string = data.password; // Must be plain text if bcrypt is not used
+    const dataPass: string = data.password; 
+    const name: string = userData.name.charAt(0).toUpperCase() + userData.name.slice(1).toLowerCase();
 
+ 
+
+    
     if (userPass == dataPass) {
       localStorage.setItem('isLoggedIn', 'true'); // Consider using session storage or cookies
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate('/dashboard',{state:{name}});
+      const email=data.email;
+      localStorage.setItem('userEmail', email);
+      
+
     } else {
       toast.error('Invalid password. Please try again.');
     }

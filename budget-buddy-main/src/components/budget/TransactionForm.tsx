@@ -32,6 +32,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { json } from 'stream/consumers';
+
+const email = localStorage.getItem('userEmail');
 
 const formSchema = z.object({
   amount: z.coerce.number().positive('Amount must be a positive number'),
@@ -60,27 +63,54 @@ const TransactionForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    addTransaction({
-      amount: data.amount,
-      description: data.description,
-      date: format(data.date, 'yyyy-MM-dd'),
-      category: data.category as TransactionCategory,
-      type: data.type,
-    });
+
+
+    const onSubmit = async (data: FormValues) => { // Marked async
+
+      const transactionData = {
+        email: email, // Fixed email format
+        type: data.type,
+        amount: data.amount,
+        date: format(data.date, "yyyy-MM-dd"),
+        description: data.description,
+        category: data.category as TransactionCategory,
+      };
     
-    form.reset({
-      amount: 0,
-      description: '',
-      date: new Date(),
-      category: '',
-      type: data.type, 
-    });
+      try {
+        const response = await fetch("http://localhost:8070/budject", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(transactionData),
+        }
+      );
+
+
+      
+          addTransaction({
+          amount: data.amount,
+          description: data.description,
+          date: format(data.date, 'yyyy-MM-dd'),
+          category: data.category as TransactionCategory,
+          type: data.type,
+        });
     
-    if (onSuccess) {
-      onSuccess();
-    }
-  };
+        form.reset({
+          amount: 0,
+          description: '',
+          date: new Date(),
+          category: '',
+          type: data.type,
+        });
+    
+        if (onSuccess) {
+          onSuccess();
+        }
+    
+      } catch (error) {
+        console.error("Error submitting transaction:", error);
+      }
+    };
+    ;
 
 
   const categories = transactionType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;

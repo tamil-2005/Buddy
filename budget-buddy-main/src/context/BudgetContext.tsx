@@ -32,6 +32,12 @@ interface BudgetContextProps {
 const BudgetContext = createContext<BudgetContextProps | undefined>(undefined);
 
 export const useBudget = () => {
+
+  
+
+
+
+
   const context = useContext(BudgetContext);
   if (!context) {
     throw new Error('useBudget must be used within a BudgetProvider');
@@ -66,6 +72,7 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
   }, [transactions]);
 
   const updateSummary = () => {
+
     const totalIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
